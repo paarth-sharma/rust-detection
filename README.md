@@ -172,15 +172,6 @@ Sigma-based confidence:
 - 2σ → 95% confidence
 - 3σ → 99.7% ("definitely defective")
 
-## Expected performance
-
-| Dataset         | Image AUROC | Pixel AUROC | Memory Bank  | Fit Time |
-|----------------|-------------|-------------|-------------|----------|
-| MVTec Screw    | ~96.0%      | ~98.0%      | ~33k patches | ~30s    |
-| MVTec Metal Nut| ~99.4%      | ~98.0%      | ~22k patches | ~20s    |
-
-*RTX 4060 Mobile, WideResNet-50-2, 10% coreset.*
-
 ## Project structure
 
 ```
