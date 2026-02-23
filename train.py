@@ -24,6 +24,33 @@ from evaluation.metrics import compute_image_metrics, print_metrics
 from evaluation.visualize import plot_score_distribution, plot_roc, comparison_figure
 
 
+def load_components_normal(components_dir, baseline_tag="T0"):
+    """Load T0 (baseline) images from the components directory as normal examples.
+
+    These are real-world reference images of the components under test.  They
+    must be included in the memory bank so the model understands what deployed
+    components look like at healthy state — the train/valid/test splits alone
+    are stock/web images with a different visual distribution.
+
+    Args:
+        components_dir: Path to data/components (or similar).
+        baseline_tag: Filename substring identifying the baseline timepoint (default "T0").
+
+    Returns:
+        List of Path objects for matched files.
+    """
+    components_dir = Path(components_dir)
+    if not components_dir.exists():
+        return []
+
+    exts = {".png", ".jpg", ".jpeg", ".bmp", ".tiff"}
+    paths = [
+        p for p in components_dir.iterdir()
+        if p.suffix.lower() in exts and baseline_tag.lower() in p.stem.lower()
+    ]
+    return sorted(paths)
+
+
 def load_split(split_dir):
     """Load image paths and labels from a split directory with _classes.csv.
 
@@ -96,6 +123,13 @@ def main():
                     help="Train on normal images from ALL splits (train+valid+test). "
                          "Greatly improves generalisation when splits have different visual domains. "
                          "An 80/20 internal shuffle is used for threshold calibration.")
+    pa.add_argument("--components-dir", default=None,
+                    help="Path to real-world component images (default: data/components). "
+                         "T0 baseline images are added to the normal training pool so the "
+                         "model learns the deployed domain, not just the stock-image domain. "
+                         "Pass an empty string to disable.")
+    pa.add_argument("--baseline-tag", default="T0",
+                    help="Filename substring identifying baseline component images (default: T0).")
     args = pa.parse_args()
 
     device = args.device or cfg.training.device
@@ -113,6 +147,21 @@ def main():
     train_split = load_split(data_dir / "train")
     valid_split = load_split(data_dir / "valid")
     test_split = load_split(data_dir / "test")
+
+    # Load real-world component baselines (T0 images).
+    # These are the images the model will actually be deployed on.  Without them
+    # the memory bank only knows stock/web-scrape images, causing a distribution
+    # shift that makes even healthy real-world components score as anomalous.
+    if args.components_dir == "":
+        components_normal_paths = []
+    else:
+        comp_dir = Path(args.components_dir) if args.components_dir else data_dir / "components"
+        components_normal_paths = load_components_normal(comp_dir, args.baseline_tag)
+
+    if components_normal_paths:
+        print(f"  Components (T0 baseline): {len(components_normal_paths)} images from {comp_dir}")
+    else:
+        print("  Components: none found (pass --components-dir to specify)")
 
     if not train_split:
         print("  [ERROR] Could not load train split"); sys.exit(1)
@@ -134,21 +183,29 @@ def main():
     # no separate validation split is needed.
     import random
     if args.combine_normals:
-        all_normal = list(train_split["normal_paths"])
+        # Pool stock normals across all splits, shuffle, 80/20 split.
+        # Components T0 images are added to training ONLY — never calibration.
+        # If they land in the calibration set their high out-of-domain scores
+        # push the 99th-percentile threshold up, tanking stock-test recall.
+        stock_normals = list(train_split["normal_paths"])
         if valid_split:
-            all_normal += valid_split["normal_paths"]
+            stock_normals += valid_split["normal_paths"]
         if test_split:
-            all_normal += test_split["normal_paths"]
+            stock_normals += test_split["normal_paths"]
         random.seed(cfg.training.seed)
-        random.shuffle(all_normal)
-        calib_n = max(1, int(len(all_normal) * 0.2))
-        train_normal_paths = all_normal[calib_n:]
-        calib_paths_combined = all_normal[:calib_n]
-        print(f"\n  --combine-normals: {len(all_normal)} total normals "
-              f"→ {len(train_normal_paths)} train / {len(calib_paths_combined)} calib")
+        random.shuffle(stock_normals)
+        calib_n = max(1, int(len(stock_normals) * 0.2))
+        calib_paths_combined = stock_normals[:calib_n]
+        train_normal_paths = stock_normals[calib_n:] + components_normal_paths
+        print(f"\n  --combine-normals: {len(stock_normals)} stock normals "
+              f"+ {len(components_normal_paths)} component baselines (train only)"
+              f" → {len(train_normal_paths)} train / {len(calib_paths_combined)} calib")
     else:
-        train_normal_paths = train_split["normal_paths"]
-        calib_paths_combined = None
+        # Without --combine-normals: T0 components go into the memory bank.
+        # Threshold calibration stays on stock validation images only so the
+        # test-set threshold is not corrupted by high OOD component scores.
+        train_normal_paths = train_split["normal_paths"] + components_normal_paths
+        calib_paths_combined = None  # calibration will use valid_split (stock only)
 
     # Build preprocessor
     pp = FastenerPreprocessor(

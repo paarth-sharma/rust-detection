@@ -1,60 +1,61 @@
-CORROSION PROGRESSION REPORT
-Primary:   Colour Rust %  — orange/brown HSV pixels in component foreground
-Secondary: HM Growth %    — foreground pixels exceeding T0 heatmap baseline by >1.5σ
-====================================================================================================
+SURFACE DEGRADATION PROGRESSION REPORT
+Primary:   Colour %  — damage-type colour pixels (rust/tarnish/green-ox) in fg
+Secondary: HM Growth %  — fg pixels exceeding T0 heatmap baseline by >1.5sigma
+Damage Type: Oxidation/Rust | Tarnish | Green Ox. | Wear/Pitting | Surface Dmg
+===================================================================================================================
 
-Component: Bolt Allen Black   (T0 baseline colour rust: 0.2%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       13.488      0.2%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      13.912      3.3%    +3.1%     +3.1%     24.8%   +24.8%  RUSTING    Trace
-  T48      13.363     13.7%   +13.5%    +10.3%     24.4%   +24.4%  RUSTING    Mild
-  T72      13.665     13.4%   +13.2%     -0.2%     26.8%   +26.8%  RUSTING    Mild
+Component: Bolt Allen Black   (T0 baseline rust colour: 0.0%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       12.538    0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      12.414    0.3%    +0.3%     +0.3%     13.8%   +13.8%  DEGRADING  Trace       Tarnish / Green Ox. / +Structural
+  T48      12.346    1.0%    +1.0%     +0.7%     15.8%   +15.8%  DEGRADING  Mild        Oxidation/Rust / Tarnish / +Structural
+  T72      12.465    0.5%    +0.5%     -0.6%     15.6%   +15.6%  DEGRADING  Mild        Tarnish / +Structural
 
-Component: Bolt M5x0.8 Grey   (T0 baseline colour rust: 9.5%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       14.458      9.5%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      14.043      3.5%    -6.0%     -6.0%     20.7%   +20.7%  RUSTING    None
-  T48      13.134     10.1%    +0.6%     +6.6%     19.9%   +19.9%  RUSTING    None
-  T72      13.537      8.6%    -0.9%     -1.5%     13.2%   +13.2%  RUSTING    None
+Component: Bolt M5x0.8 Grey   (T0 baseline rust colour: 0.2%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       13.439    0.2%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      13.393    0.2%    -0.0%     -0.0%     21.2%   +21.2%  DEGRADING  Mild        Tarnish / +Structural
+  T48      12.817    0.3%    +0.1%     +0.1%     16.9%   +16.9%  DEGRADING  Mild        Tarnish / +Structural
+  T72      12.358    0.3%    +0.1%     +0.0%     12.5%   +12.5%  DEGRADING  Trace       Tarnish / +Structural
 
-Component: Lock Nut Silver   (T0 baseline colour rust: 0.5%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       13.552      0.5%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      13.228      0.5%    -0.0%     -0.0%      9.2%    +9.2%  RUSTING    None
-  T48      12.933      3.2%    +2.7%     +2.7%      5.3%    +5.3%  RUSTING    Trace
-  T72      12.731      2.7%    +2.2%     -0.5%      6.7%    +6.7%  RUSTING    Trace
+Component: Lock Nut Silver   (T0 baseline rust colour: 0.0%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       13.825    0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      12.639    0.0%    -0.0%     -0.0%     10.0%   +10.0%  DEGRADING  Trace       Surface Dmg
+  T48      12.364    0.1%    +0.1%     +0.1%      3.8%    +3.8%  STABLE     None        —
+  T72      12.136    0.1%    +0.0%     -0.1%      8.2%    +8.2%  DEGRADING  Trace       Surface Dmg
 
-Component: Nut Black   (T0 baseline colour rust: 0.2%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       13.115      0.2%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      12.343      0.1%    -0.1%     -0.1%     13.2%   +13.2%  RUSTING    None
-  T48      12.463      0.4%    +0.2%     +0.3%     21.6%   +21.6%  RUSTING    None
-  T72      12.347      0.6%    +0.3%     +0.1%     13.4%   +13.4%  RUSTING    None
+Component: Nut Black   (T0 baseline rust colour: 0.0%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       12.418    0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      12.133    0.0%   +-0.0%    +-0.0%     17.7%   +17.7%  DEGRADING  Mild        Surface Dmg
+  T48      11.859    0.0%   +-0.0%     +0.0%     22.1%   +22.1%  DEGRADING  Mild        Green Ox. / +Structural
+  T72      12.203    0.0%    +0.0%     +0.0%     23.6%   +23.6%  DEGRADING  Mild        Green Ox. / +Structural
 
-Component: Nut Insert Black   (T0 baseline colour rust: 0.0%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       12.744      0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      12.896      0.1%    +0.1%     +0.1%      4.4%    +4.4%  STABLE     None
-  T48      12.521      0.3%    +0.3%     +0.2%      3.8%    +3.8%  STABLE     None
-  T72      12.711      0.2%    +0.2%     -0.1%      5.5%    +5.5%  RUSTING    None
+Component: Nut Insert Black   (T0 baseline rust colour: 0.0%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       12.105    0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      11.608    0.0%    +0.0%     +0.0%      4.8%    +4.8%  STABLE     None        —
+  T48      11.633    0.0%    +0.0%     +0.0%      6.0%    +6.0%  DEGRADING  Trace       Surface Dmg
+  T72      12.311    0.0%    +0.0%    +-0.0%      8.4%    +8.4%  DEGRADING  Trace       Tarnish / +Structural
 
-Component: Nut Silver   (T0 baseline colour rust: 5.1%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       13.161      5.1%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      13.738      1.5%    -3.6%     -3.6%     18.7%   +18.7%  RUSTING    None
-  T48      13.224      5.2%    +0.1%     +3.7%     12.3%   +12.3%  RUSTING    None
-  T72      12.923      8.4%    +3.4%     +3.2%      9.9%    +9.9%  RUSTING    Trace
+Component: Nut Silver   (T0 baseline rust colour: 0.1%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       12.233    0.1%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      13.170    0.0%    -0.1%     -0.1%     17.5%   +17.5%  DEGRADING  Mild        Surface Dmg
+  T48      12.252    0.1%    -0.0%     +0.1%     10.9%   +10.9%  DEGRADING  Trace       Surface Dmg
+  T72      12.520    0.2%    +0.1%     +0.1%     10.1%   +10.1%  DEGRADING  Trace       Surface Dmg
 
-Component: Washer Black   (T0 baseline colour rust: 0.1%)
-  Time      Score   Colour%   ColΔT0  ColΔPrev   HMGrow%  HMΔvsT0 Status     Severity
-  ----------------------------------------------------------------------------------------
-  T0       12.289      0.1%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None
-  T24      12.751      0.2%    +0.0%     +0.0%     33.2%   +33.2%  RUSTING    None
-  T48      12.486      0.2%    +0.0%     +0.0%     55.6%   +55.6%  RUSTING    None
-  T72      12.950      0.2%    +0.1%     +0.1%     29.2%   +29.2%  RUSTING    None
+Component: Washer Black   (T0 baseline rust colour: 0.0%)
+  Time      Score   Rust%  RustDT0  ColDPrev   HMGrow%  HMDvsT0  Status     Severity    Damage Type
+  -------------------------------------------------------------------------------------------------------
+  T0       11.005    0.0%    +0.0%     +0.0%      0.0%    +0.0%  BASELINE   None        —
+  T24      11.665    0.0%    +0.0%     +0.0%     34.7%   +34.7%  DEGRADING  Moderate    Wear/Pitting
+  T48      10.911    0.0%    +0.0%     +0.0%     48.2%   +48.2%  DEGRADING  Moderate    Green Ox. / +Structural
+  T72      11.380    0.0%    +0.0%     +0.0%     46.0%   +46.0%  DEGRADING  Moderate    Wear/Pitting
