@@ -17,26 +17,29 @@ graph TB
     subgraph Training["Training Pipeline (train.py)"]
         LS["Load Split<br/>Parse _classes.csv"]
         FN["Filter Normal<br/>Images Only"]
+        CN["--combine-normals<br/>Pool all splits' normals"]
         PP["Preprocessing<br/>Pipeline"]
         FE["Feature Extraction<br/>WideResNet-50-2"]
-        CS["Coreset<br/>Subsampling (10%)"]
+        CS["Coreset<br/>Subsampling (20%)"]
         MB["Memory Bank<br/>+ FAISS Index"]
         TC["Threshold<br/>Calibration (P99)"]
     end
 
-    subgraph Inference["Inference Pipeline (inference.py)"]
+    subgraph Inference["Inference Pipeline"]
         IMG["Input Image"]
         PP2["Preprocessing"]
         FE2["Feature Extraction"]
         NN["Nearest Neighbor<br/>Search (FAISS)"]
         SC["Anomaly Score<br/>+ Heatmap"]
         DEC["Decision:<br/>Normal / Corroded"]
+        CA["corrosion_analysis.py<br/>Corrosion Report"]
     end
 
     subgraph Outputs["Outputs"]
         MOD["saved_models/<br/>patchcore_fastener.pkl"]
         VIZ["outputs/visualizations/<br/>ROC, score dist, heatmaps"]
         MET["Metrics:<br/>AUROC, F1, Precision, Recall"]
+        COR["outputs/corrosion_report/<br/>summary.txt, report.json, plots"]
     end
 
     TR --> LS
@@ -45,6 +48,10 @@ graph TB
 
     LS --> FN
     FN -->|"normal images"| PP
+    TR -.->|"optional: --combine-normals"| CN
+    VA -.->|"optional: --combine-normals"| CN
+    TE -.->|"optional: --combine-normals"| CN
+    CN -.->|"pooled normals"| PP
     PP --> FE
     FE --> CS
     CS --> MB
@@ -60,14 +67,17 @@ graph TB
     FE2 --> NN
     NN --> SC
     SC --> DEC
+    DEC --> CA
 
     TC --> VIZ
     DEC --> MET
+    CA --> COR
 
     style Data fill:#e8f4f8,stroke:#2196F3
     style Training fill:#e8f5e9,stroke:#4CAF50
     style Inference fill:#fff3e0,stroke:#FF9800
     style Outputs fill:#f3e5f5,stroke:#9C27B0
+    style CN fill:#f0f4c3,stroke:#827717,stroke-dasharray: 5 5
 ```
 
 ---
@@ -118,7 +128,7 @@ graph TD
     SEG --> ROI["5. ROI Extraction<br/>Bounding box crop<br/>with 10% padding"]
     ROI --> ALIGN["6. Alignment<br/>Moment-based rotation<br/>to canonical pose"]
     ALIGN --> SCALE["7. Scale Normalization<br/>Fill 80% of canvas"]
-    SCALE --> MASK["8. Background Masking<br/>Zero non-component pixels"]
+    SCALE --> MASK["8. Background Masking<br/>Neutral gray fill (128)<br/>≈ ImageNet pixel mean"]
     MASK --> OUT["Preprocessed Image<br/>256 x 256 x 3 BGR"]
 
     SEG -.->|"contour"| ROI
@@ -156,6 +166,12 @@ graph TD
         FILT_E -->|"Yes (corroded)"| EVAL2["Evaluation<br/>(label = 1)"]
     end
 
+    CSV_T -.->|"--combine-normals"| COMBINE["Combined Normal Pool<br/>118 images<br/>80% train / 20% calib"]
+    CSV_V -.->|"--combine-normals"| COMBINE
+    CSV_E -.->|"--combine-normals"| COMBINE
+    COMBINE -.->|"pooled normals"| TRAIN
+    COMBINE -.->|"pooled calib set"| THRESH
+
     TRAIN --> MODEL["PatchCore Model"]
     THRESH --> MODEL
     EVAL --> METRICS["AUROC, F1, Precision,<br/>Recall, Accuracy"]
@@ -166,6 +182,7 @@ graph TD
     style TRAIN fill:#e8f5e9,stroke:#2E7D32
     style THRESH fill:#fff3e0,stroke:#E65100
     style MODEL fill:#e3f2fd,stroke:#1565C0
+    style COMBINE fill:#f0f4c3,stroke:#827717,stroke-dasharray: 5 5
 ```
 
 ---
@@ -196,8 +213,7 @@ graph TD
     CMP -->|"Yes"| ANOM["CORRODED"]
     CMP -->|"No"| NORM["NORMAL"]
 
-    MAX --> SIGMA["Sigma =<br/>(score - mean) / std"]
-    SIGMA --> CONF["Confidence %<br/>via normal CDF"]
+    MAX --> CONF["Confidence %<br/>threshold-relative<br/>~50% at threshold"]
 
     style ANOM fill:#ffebee,stroke:#c62828,color:#c62828
     style NORM fill:#e8f5e9,stroke:#2E7D32,color:#2E7D32
@@ -232,6 +248,7 @@ graph BT
 
     TRAIN["train.py"]
     INFER["inference.py"]
+    CA["corrosion_analysis.py"]
 
     LIGHT --> PIPE
     SEGM --> PIPE
@@ -242,10 +259,13 @@ graph BT
 
     CONFIG --> TRAIN
     CONFIG --> INFER
+    CONFIG --> CA
     PIPE --> TRAIN
     PIPE --> INFER
+    PIPE --> CA
     PC --> TRAIN
     PC --> INFER
+    PC --> CA
     METR --> TRAIN
     VIS --> TRAIN
     VIS --> INFER
@@ -253,6 +273,7 @@ graph BT
     style CONFIG fill:#fff9c4,stroke:#F9A825
     style TRAIN fill:#e8f5e9,stroke:#2E7D32
     style INFER fill:#fff3e0,stroke:#E65100
+    style CA fill:#fff3e0,stroke:#E65100
     style Preprocessing fill:#f3e5f5,stroke:#7B1FA2
     style Models fill:#e3f2fd,stroke:#1565C0
     style Evaluation fill:#fce4ec,stroke:#C62828

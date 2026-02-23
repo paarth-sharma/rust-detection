@@ -95,8 +95,10 @@ class FastenerPreprocessor:
                     metadata["alignment_transform"] = transform
             # 7. Scale normalization
             image, mask = scale_normalize(image, mask, self.target_size, self.fill_ratio)
-            # 8. Background masking
-            image = apply_background_mask(image, mask, bg_value=0)
+            # 8. Background masking — use neutral gray (≈ ImageNet mean) instead of
+            # black (0) so the WideResNet50 backbone sees realistic pixel values
+            # in background regions rather than large negative activations.
+            image = apply_background_mask(image, mask, bg_value=128)
 
             return PreprocessResult(image=image, mask=mask, original=original, metadata=metadata, success=True)
 

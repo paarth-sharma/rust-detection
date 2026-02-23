@@ -167,7 +167,19 @@ class PatchCore:
         score, heatmap = self.predict(image)
         is_anomalous = score > self.threshold if self.threshold > 0 else None
         sigma = (score - self.train_scores_mean) / self.train_scores_std if self.train_scores_std > 0 else 0.0
-        confidence = norm.cdf(sigma) * 100 if sigma > 0 else (1 - norm.cdf(abs(sigma))) * 100
+
+        # Confidence = how decisively the score sits on one side of the threshold.
+        # Using the gap from threshold normalised by normal-score std prevents the
+        # always-100% problem that occurs when the z-score from the training mean
+        # is used (test scores are far from training mean even for normal images).
+        if self.threshold > 0 and self.train_scores_std > 0:
+            # Width of the "decision zone" around the threshold
+            span = max(self.threshold - self.train_scores_mean, self.train_scores_std)
+            margin = (score - self.threshold) / span
+            confidence = float(norm.cdf(margin) * 100)
+        else:
+            confidence = 50.0
+
         return {
             "is_anomalous": is_anomalous, "score": score,
             "threshold": self.threshold, "confidence": confidence,

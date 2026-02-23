@@ -87,10 +87,15 @@ def main():
     pa = argparse.ArgumentParser()
     pa.add_argument("--data-dir", default=None, help="Root data directory (default: data/)")
     pa.add_argument("--preprocess-only", action="store_true")
-    pa.add_argument("--coreset-ratio", type=float, default=0.1)
+    pa.add_argument("--coreset-ratio", type=float, default=0.2,
+                    help="Coreset sampling ratio (default: 0.2). Higher = larger memory bank.")
     pa.add_argument("--target-dim", type=int, default=256)
     pa.add_argument("--batch-size", type=int, default=32)
     pa.add_argument("--device", default=None)
+    pa.add_argument("--combine-normals", action="store_true",
+                    help="Train on normal images from ALL splits (train+valid+test). "
+                         "Greatly improves generalisation when splits have different visual domains. "
+                         "An 80/20 internal shuffle is used for threshold calibration.")
     args = pa.parse_args()
 
     device = args.device or cfg.training.device
@@ -124,6 +129,27 @@ def main():
     if not train_split["normal_paths"]:
         print("  [ERROR] No normal (non-corroded) training images!"); sys.exit(1)
 
+    # Optionally pool all normal images across splits for a larger, more diverse
+    # memory bank.  Uses an 80/20 internal shuffle for threshold calibration so
+    # no separate validation split is needed.
+    import random
+    if args.combine_normals:
+        all_normal = list(train_split["normal_paths"])
+        if valid_split:
+            all_normal += valid_split["normal_paths"]
+        if test_split:
+            all_normal += test_split["normal_paths"]
+        random.seed(cfg.training.seed)
+        random.shuffle(all_normal)
+        calib_n = max(1, int(len(all_normal) * 0.2))
+        train_normal_paths = all_normal[calib_n:]
+        calib_paths_combined = all_normal[:calib_n]
+        print(f"\n  --combine-normals: {len(all_normal)} total normals "
+              f"→ {len(train_normal_paths)} train / {len(calib_paths_combined)} calib")
+    else:
+        train_normal_paths = train_split["normal_paths"]
+        calib_paths_combined = None
+
     # Build preprocessor
     pp = FastenerPreprocessor(
         target_size=cfg.preprocess.image_size,
@@ -140,7 +166,7 @@ def main():
 
     # Preprocess training images (normal only — PatchCore paradigm)
     print("\n  Preprocessing normal training images...")
-    train_images = preprocess_images(train_split["normal_paths"], pp, "Train (normal)")
+    train_images = preprocess_images(train_normal_paths, pp, "Train (normal)")
 
     # Save sample preprocessed images
     pp_dir = cfg.paths.output_dir / "preprocessed"
@@ -157,9 +183,12 @@ def main():
         print("  Preprocessing done.")
         return
 
-    # Preprocess validation images (normal only — for threshold calibration)
+    # Preprocess validation images for threshold calibration
     val_images = None
-    if valid_split and valid_split["normal_paths"]:
+    if args.combine_normals and calib_paths_combined:
+        print("\n  Preprocessing combined calibration images...")
+        val_images = preprocess_images(calib_paths_combined, pp, "Calib (normal)")
+    elif valid_split and valid_split["normal_paths"]:
         print("\n  Preprocessing normal validation images...")
         val_images = preprocess_images(valid_split["normal_paths"], pp, "Valid (normal)")
 
